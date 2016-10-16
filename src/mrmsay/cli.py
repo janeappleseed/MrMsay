@@ -23,6 +23,10 @@ def main():
                         personal access token); credentials are
                         automatically saved, so you only need to path
                         --auth once""")
+    parser.add_argument('--offline', action='store_true',
+                        help="""do not attempt to fetch new comments; by
+                        default the program fetches new comments if it
+                        hasn't done so in the last ten minutes""")
     parser.add_argument('-v', '--version', action='version',
                         version='MrMsay %s' % __version__)
     parser.add_argument('--debug', action='store_true',
@@ -49,8 +53,12 @@ def main():
         )
 
         print('Querying MrM...')
-        remote.fetch_comments()
-        comment = db.pick_random_comment(NUM_RECENT_COMMENTS_TO_PICK_FROM)
+
+        if not args.offline:
+            remote.fetch_comments()
+
+        comment = db.pick_random_comment(NUM_RECENT_COMMENTS_TO_PICK_FROM,
+                                         ensure_short_url=not args.offline)
         try:
             print(sh.cowsay(f='turkey', W='72', _in=comment.body))
         except sh.ErrorReturnCode:

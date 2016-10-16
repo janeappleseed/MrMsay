@@ -23,8 +23,9 @@ DB_PATH = os.path.join(CACHE_DIR, 'comments.db')
 
 # Blacklisted words, phrases or sentences
 BLACKLIST = [
-    'You rock!',
+    '@BrewTestBot test this please',
     'READ THIS: https://git.io/brew-troubleshooting',
+    'You rock!',
 ]
 
 # Avoid the following number of recently picked comments (so that MrM does not

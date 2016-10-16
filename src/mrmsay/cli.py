@@ -40,7 +40,18 @@ def main():
     print('Querying MrM...')
     remote.fetch_comments()
     comment = db.pick_random_comment(60)
-    print(sh.cowsay(f='turkey', W='72', _in=comment.body))
+    try:
+        print(sh.cowsay(f='turkey', W='72', _in=comment.body))
+    except sh.ErrorReturnCode:
+        # There's bug in older versions of Perl, e.g. system Perl (5.18.2) on
+        # macOS 10.12 which could lead to cowsay spitting an error like
+        #
+        #     This shouldn't happen at /System/Library/Perl/5.18/Text/Wrap.pm
+        #     line 84, <STDIN> line 1.
+        #
+        # in certain cases. The bug is in Text::Wrap 2012.0818 and was fixed in
+        # 2013.0523. See http://www.perlmonks.org/?node_id=1070469#1070721.
+        print(sh.cowsay(f='turkey', W='72', _in='...'))
     print(comment.short_url)
 
 if __name__ == '__main__':

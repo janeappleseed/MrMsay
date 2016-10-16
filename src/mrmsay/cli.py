@@ -67,6 +67,8 @@ def main():
     except Exception as e:
         if not args.debug:
             sys.stderr.write('[ERROR] Got %s: %s\n' % (type(e).__name__, e))
+        else:
+            raise
 
 if __name__ == '__main__':
     main()

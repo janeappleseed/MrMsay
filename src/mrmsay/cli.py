@@ -11,6 +11,9 @@ from mrmsay import (
 )
 from mrmsay.__version__ import __version__
 
+# Maximum number of recent comments to pick a random one from
+NUM_RECENT_COMMENTS_TO_PICK_FROM = 300
+
 def main():
     description = "MrM's wisdom, right in your terminal."
     parser = argparse.ArgumentParser(description=description)
@@ -47,7 +50,7 @@ def main():
 
         print('Querying MrM...')
         remote.fetch_comments()
-        comment = db.pick_random_comment(60)
+        comment = db.pick_random_comment(NUM_RECENT_COMMENTS_TO_PICK_FROM)
         try:
             print(sh.cowsay(f='turkey', W='72', _in=comment.body))
         except sh.ErrorReturnCode:

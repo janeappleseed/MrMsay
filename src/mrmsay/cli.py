@@ -9,6 +9,7 @@ from mrmsay import (
     config,
     logger,
 )
+from mrmsay.__version__ import __version__
 
 def main():
     description = "MrM's wisdom, right in your terminal."
@@ -19,6 +20,8 @@ def main():
                         personal access token); credentials are
                         automatically saved, so you only need to path
                         --auth once""")
+    parser.add_argument('-v', '--version', action='version',
+                        version='MrMsay %s' % __version__)
     parser.add_argument('--debug', action='store_true',
                         help=argparse.SUPPRESS)
     args = parser.parse_args()

@@ -4,9 +4,11 @@ import os
 import random
 
 import peewee
+import playhouse.migrate
 
-from mrmsay.paths import CACHE_DIR
 from mrmsay import remote
+from mrmsay.logger import logger
+from mrmsay.paths import CACHE_DIR
 
 __all__ = [
     'dump_comments',
@@ -14,7 +16,7 @@ __all__ = [
     'pick_random_comment',
 ]
 
-DB_SCHEMA_VERSION = 1
+DB_SCHEMA_VERSION = 2
 DB_PATH = os.path.join(CACHE_DIR, 'comments.db')
 
 # Blacklisted words, phrases or sentences
@@ -23,9 +25,7 @@ BLACKLIST = [
     'READ THIS: https://git.io/brew-troubleshooting',
 ]
 
-db = peewee.SqliteDatabase(DB_PATH, pragmas=[
-    ('user_version', DB_SCHEMA_VERSION)
-])
+db = peewee.SqliteDatabase(DB_PATH)
 
 class Comment(peewee.Model):
     # Full comment URL
@@ -38,14 +38,39 @@ class Comment(peewee.Model):
     body = peewee.TextField()
     # Blacklisted or not
     blacklisted = peewee.BooleanField()
+    # Timestamp when the comment was last picked
+    last_picked = peewee.IntegerField(default=0)
 
     class Meta(object):
         database = db
 
+def db_schema_1_to_2():
+    migrator = playhouse.migrate.SqliteMigrator(db)
+    playhouse.migrate.migrate(migrator.add_column('comment', 'last_picked', Comment.last_picked))
+
 def db_init():
     db.connect()
-    db.create_table(Comment, safe=True)
-    db_initialized = True
+    try:
+        db.create_table(Comment, safe=True)
+    except peewee.OperationalError:
+        pass
+
+    schema_version = db.execute_sql('PRAGMA user_version;').fetchone()[0]
+    if schema_version == 0:
+        # New database
+        schema_version = DB_SCHEMA_VERSION
+        db.execute_sql('PRAGMA user_version = %s;' % schema_version)
+
+    logger.info('Database schema version: %d', schema_version)
+    if schema_version < DB_SCHEMA_VERSION:
+        # Migrate schema
+        migrators = [None, db_schema_1_to_2]
+        for increment, migrator in enumerate(migrators[schema_version:]):
+            current_version = schema_version + increment
+            logger.info('Migrating from schema version %d to %d' %
+                        (current_version, current_version + 1))
+            migrator()
+        db.execute_sql('PRAGMA user_version = %s;' % DB_SCHEMA_VERSION)
 
 def insert_new_comments(comments):
     for comment in comments:

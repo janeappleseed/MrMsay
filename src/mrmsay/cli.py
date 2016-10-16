@@ -7,9 +7,7 @@ import sh
 
 from mrmsay import (
     config,
-    db,
     logger,
-    remote,
 )
 
 def main():
@@ -38,6 +36,12 @@ def main():
         logger.enable_debug()
 
     try:
+        # Delay several internal imports so that --debug could take effect
+        from mrmsay import (
+            db,
+            remote,
+        )
+
         print('Querying MrM...')
         remote.fetch_comments()
         comment = db.pick_random_comment(60)

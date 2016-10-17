@@ -11,6 +11,7 @@ import requests
 from mrmsay import (
     config,
     db,
+    safeio,
 )
 from mrmsay.logger import logger
 from mrmsay.paths import CACHE_DIR
@@ -28,18 +29,14 @@ MAX_NUM_PAGES = 10 # API limit
 UPDATE_TIMESTAMP_FILE = os.path.join(CACHE_DIR, 'update_timestamp')
 
 def outdated():
-    last_update = 0
-    if os.path.isfile(UPDATE_TIMESTAMP_FILE):
-        with open(UPDATE_TIMESTAMP_FILE) as fp:
-            try:
-                last_update = int(fp.read())
-            except ValueError:
-                pass
+    try:
+        last_update = int(safeio.read(UPDATE_TIMESTAMP_FILE))
+    except (TypeError, ValueError):
+        last_update = 0
     return time.time() >= last_update + 600 # Ten minutes since the last update
 
 def write_timestamp():
-    with open(UPDATE_TIMESTAMP_FILE, 'w') as fp:
-        fp.write(str(int(time.time())))
+    safeio.write(UPDATE_TIMESTAMP_FILE, str(int(time.time())))
 
 def fetch_comments():
     if not outdated():

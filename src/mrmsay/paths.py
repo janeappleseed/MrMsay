@@ -17,5 +17,5 @@ if os.getenv('XDG_CACHE_HOME'):
 else:
     CACHE_DIR = os.path.expanduser('~/.cache/mrmsay')
 
-os.makedirs(CACHE_DIR, exist_ok=True)
-os.makedirs(CONFIG_DIR, exist_ok=True)
+os.makedirs(CACHE_DIR, mode=0o700, exist_ok=True)
+os.makedirs(CONFIG_DIR, mode=0o700, exist_ok=True)

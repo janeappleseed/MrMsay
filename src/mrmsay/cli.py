@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import sys
 
 import sh
@@ -42,8 +43,7 @@ def main():
 
         config.set_credentials(user, token)
 
-    if args.debug:
-        logger.enable_debug()
+    logger.logger_init(level=logging.DEBUG if args.debug else logging.ERROR)
 
     try:
         # Delay several internal imports so that --debug could take effect

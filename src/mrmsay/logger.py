@@ -1,30 +1,29 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 
 __all__ = [
     'logger',
-    'enable_warning',
-    'enable_debug',
+    'logger_init',
 ]
 
 logger = logging.getLogger('MrMsay')
 
-def logger_init():
+# logfile: if specified, log to the file; otherwise, log to stderr.
+# Returns the file descriptor of the logfile (or that of stderr if
+# logfile is unspecified).
+def logger_init(logfile=None, level=logging.ERROR):
     formatter = logging.Formatter(
         fmt='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
         datefmt='%y-%m-%d %H:%M:%S',
     )
-    handler = logging.StreamHandler()
+    if logfile:
+        os.makedirs(os.path.dirname(logfile), exist_ok=True)
+        handler = logging.FileHandler(logfile)
+    else:
+        handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.setLevel(logging.ERROR)
+    logger.setLevel(level)
     logger.addHandler(handler)
-    logger_initialized = True
-
-def enable_warning():
-    logger.setLevel(logging.WARNING)
-
-def enable_debug():
-    logger.setLevel(logging.DEBUG)
-
-logger_init()
+    return handler.stream.fileno()

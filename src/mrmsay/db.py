@@ -14,7 +14,8 @@ from mrmsay.paths import CACHE_DIR
 __all__ = [
     'dump_comments',
     'dump_comments_smart',
-    'insert_new_comments',
+    'insert_comment',
+    'insert_comments',
     'pick_random_comment',
 ]
 
@@ -79,8 +80,9 @@ def db_init():
             migrator()
         db.execute_sql('PRAGMA user_version = %s;' % DB_SCHEMA_VERSION)
 
+# Returns True if the comment does not exist already, and False otherwise.
 @db.atomic()
-def insert_new_comment(comment):
+def insert_comment(comment):
     try:
         Comment.get(Comment.url == comment['url'])
         return False
@@ -92,10 +94,11 @@ def insert_new_comment(comment):
             body=comment['body'],
             blacklisted=any([entry in comment['body'] for entry in BLACKLIST]),
         )
+        return True
 
-def insert_new_comments(comments):
-    for comment in comments:
-        insert_new_comment(comment)
+# Returns True if all comments are new, and False otherwise.
+def insert_comments(comments):
+    return all([insert_comment(comment) for comment in comments])
 
 # limit is the maximum number of most recent comments to dump (default: None)
 def dump_comments(limit=None):

@@ -55,9 +55,6 @@ def fetch_comments():
 
     url = API_ENDPOINT
     page = 0
-    past_comments_urls = [comment.url for comment in db.dump_comments(limit=MAX_NUM_EVENTS)]
-    new_comments = []
-    stop_fetching = False
     while url and page < MAX_NUM_PAGES:
         logger.debug('Fetching %s', url)
         try:
@@ -78,6 +75,7 @@ def fetch_comments():
         if page == 0:
             write_timestamp()
 
+        comments = []
         for event in response.json():
             if 'payload' not in event:
                 continue
@@ -90,19 +88,14 @@ def fetch_comments():
             comment_url = comment['html_url']
             comment_created_at = arrow.get(comment['created_at'])
             comment_body = comment['body']
-
-            if comment_url in past_comments_urls:
-                # Already seen in the past, terminate all scraping operations
-                stop_fetching = True
-                break
-
-            new_comments.append({
+            comments.append({
                 'url': comment_url,
                 'created_at': comment_created_at,
                 'body': comment_body,
             })
 
-        if stop_fetching:
+        if not db.insert_comments(comments):
+            # We're getting old comments already, stop fetching
             break
 
         try:
@@ -111,8 +104,6 @@ def fetch_comments():
             break
 
         page += 1
-
-    db.insert_new_comments(new_comments)
 
 def shorten_url(url):
     logger.debug('git.io %s', url)

@@ -20,12 +20,14 @@ setup(
     package_dir={'': 'src'},
     install_requires=[
         'arrow>=0.8.0',
+        'daemonize>=2.4.7',
         'peewee>=2.8.5',
         'requests>=2.11.1',
         'sh>=1.11',
     ],
     entry_points={
         'console_scripts': [
+            'mrmd=mrmsay.daemon:main',
             'mrmsay=mrmsay.cli:main',
         ],
     },

@@ -79,8 +79,12 @@ def db_init():
             migrator()
         db.execute_sql('PRAGMA user_version = %s;' % DB_SCHEMA_VERSION)
 
-def insert_new_comments(comments):
-    for comment in comments:
+@db.atomic()
+def insert_new_comment(comment):
+    try:
+        Comment.get(Comment.url == comment['url'])
+        return False
+    except peewee.DoesNotExist:
         Comment.create(
             url=comment['url'],
             short_url='',
@@ -88,6 +92,10 @@ def insert_new_comments(comments):
             body=comment['body'],
             blacklisted=any([entry in comment['body'] for entry in BLACKLIST]),
         )
+
+def insert_new_comments(comments):
+    for comment in comments:
+        insert_new_comment(comment)
 
 # limit is the maximum number of most recent comments to dump (default: None)
 def dump_comments(limit=None):
@@ -152,7 +160,6 @@ def pick_random_comment(limit=None, ensure_short_url=True):
     comment = comments[random.randrange(len(comments))]
     if not comment.short_url and ensure_short_url:
         comment.short_url = remote.shorten_url(comment.url)
-        comment.save()
     comment.last_picked = int(time.time())
     comment.save()
     return comment

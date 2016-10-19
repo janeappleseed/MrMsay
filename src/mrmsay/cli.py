@@ -4,11 +4,10 @@ import argparse
 import logging
 import sys
 
-import sh
-
 from mrmsay import (
     config,
     logger,
+    say,
 )
 from mrmsay.__version__ import __version__
 
@@ -59,18 +58,7 @@ def main():
 
         comment = db.pick_random_comment(NUM_RECENT_COMMENTS_TO_PICK_FROM,
                                          ensure_short_url=not args.offline)
-        try:
-            print(sh.cowsay(f='turkey', W='72', _in=comment.body))
-        except sh.ErrorReturnCode:
-            # There's bug in older versions of Perl, e.g. system Perl (5.18.2) on
-            # macOS 10.12 which could lead to cowsay spitting an error like
-            #
-            #     This shouldn't happen at /System/Library/Perl/5.18/Text/Wrap.pm
-            #     line 84, <STDIN> line 1.
-            #
-            # in certain cases. The bug is in Text::Wrap 2012.0818 and was fixed in
-            # 2013.0523. See http://www.perlmonks.org/?node_id=1070469#1070721.
-            print(sh.cowsay(f='turkey', W='72', _in='...'))
+        print(say.say(comment.body))
         print(comment.short_url)
     except KeyboardInterrupt:
         sys.stderr.write('Interrupted.\n')

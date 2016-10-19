@@ -2,9 +2,11 @@
 
 import sh
 
-def say(body):
+# Specify custsom cowsay(1) path with the cowsay argument.
+def say(body, cowsay=None):
+    cowsay = sh.Command(cowsay if cowsay else 'cowsay')
     try:
-        return str(sh.cowsay(f='turkey', W='72', _in=body))
+        return str(cowsay(f='turkey', W='72', _in=body))
     except sh.ErrorReturnCode:
         # There's bug in older versions of Perl, e.g. system Perl (5.18.2) on
         # macOS 10.12 which could lead to cowsay spitting an error like
@@ -14,4 +16,4 @@ def say(body):
         #
         # in certain cases. The bug is in Text::Wrap 2012.0818 and was fixed in
         # 2013.0523. See http://www.perlmonks.org/?node_id=1070469#1070721.
-        return str(sh.cowsay(f='turkey', W='72', _in='...'))
+        return str(cowsay(f='turkey', W='72', _in='...'))

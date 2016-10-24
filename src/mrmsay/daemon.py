@@ -17,7 +17,7 @@ PIDFILE = os.path.join(RUNTIME_DIR, 'mrmd.pid')
 def fetch_loop():
     from mrmsay import remote
     while True:
-        remote.fetch_comments()
+        remote.fetch_comments(force=True)
         time.sleep(600)
 
 def main():

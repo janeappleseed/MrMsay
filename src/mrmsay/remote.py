@@ -38,8 +38,9 @@ def outdated():
 def write_timestamp():
     safeio.write(UPDATE_TIMESTAMP_FILE, str(int(time.time())))
 
-def fetch_comments():
-    if not outdated():
+# When force is set to True, do not check timestamp.
+def fetch_comments(force=False):
+    if not force and not outdated():
         logger.debug('Not outdated, skip fetching')
         return
 
